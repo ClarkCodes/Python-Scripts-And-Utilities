@@ -6,7 +6,7 @@
 Here there are Python Scripts and Utilities I've written, some of them are exercises I solved and some others I made them to solve a personal need or by practicing some topic or just because I found it interesting doing it, Python is pretty cool, and I love to use it.
 
 ###
-## ![ClarkCodes Logo OnTransparent_100x100px_300ppi](https://user-images.githubusercontent.com/39943822/235443512-3ab382e8-888e-4d2d-87ba-1c8f4ef3ec45.png) Hey what's up man!, I'm Clark, the creator of CinemaTickets.
+## ![ClarkCodes Logo OnTransparent_100x100px_300ppi](https://user-images.githubusercontent.com/39943822/235443512-3ab382e8-888e-4d2d-87ba-1c8f4ef3ec45.png) Hey what's up man!, I'm Clark... glad you're here :D
 [![YouTube Channel Subscribers](https://img.shields.io/youtube/channel/views/:@clarkcodes?style=social)](https://youtube.com/@ClarkCodes?sub_confirmation=1)
 [![Twitter Follow](https://img.shields.io/twitter/follow/ClarkCodes?style=social)](https://twitter.com/clarkcodes)
 [![GitHub Followers](https://img.shields.io/github/followers/ClarkCodes?style=social)](https://github.com/ClarkCodes)

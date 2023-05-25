@@ -27,8 +27,8 @@ Podrás configurar generar contraseñas con los siguientes parámetros:
 Autor: Clark - @ClarkCodes
 Fecha de Resolución: 20/04/2023
 
-Última Actualización: 24/05/2023
-Versión: 2.0 
+Última Actualización: 25/05/2023
+Versión: 2.0.1
 """
 
 # Imports
@@ -313,38 +313,30 @@ def quality_report():
     else:
         print( f"\nNo se ha generado una contraseña todavía, genere una para acceder al respectivo reporte de calidad." )
 
-# Verificador de existencia - Verifica que una clave indicada parte de un par clave-valor exista en una lista de pares indicada, devuelve True si existe y la encuentra, False de lo contrario
-def verify_existing_key( key_to_find, source_list ):
-    for pair in source_list:
-        if pair[0] == key_to_find:
-            return True
-
-    return False
-
 # Motor de Generación de Contraseña Aleatoria
 def safe_password_generator():
     global generatedPwd
     generatedPwd = "" 
-    granting_chars = [] # Lista que se usa para asegurar un caracter de cada conjunto permitido en la configuración, las letras minúsculas siempre esta permitidas de base y los demas son configurables.
-    granting_chars_index = 0
+    granting_chars = {} # Diccionario que se usa para asegurar un caracter de cada conjunto permitido en la configuración, las letras minúsculas siempre esta permitidas de base y los demas son configurables.
     ch_drawn = "" # Variable para el caracter elegido aleatoriamente
-    char_set = [] # Se declara una lista y se le añade la tupla de letras en minúsculas, que son la base
-    char_set.extend( LOWER_LETTERS )
+    char_set = [] # Lista que servirá como pool de caracteres disponibles para elegir uno de manera aleatoria en cada iteración del for para así completar la contraseña
+    char_set.extend( LOWER_LETTERS ) # A esta lista se le iran añadiendo las tuplas de caracteres según se halla indicado en la configuración, empezando por las letras minúsculas que son la base obligatoria, los demás son configurables
                 
-    # Se determina un caracter de letra minúscula aleatoriamente para asegurar que siempre exista al menos una letra minúscula, en una lista de tuplas de tipo par clave-valor, donde la clave es el indice donde irá el caracter y el valor es el caracter en sí                
+    # Se determina un caracter de letra minúscula aleatoriamente para asegurar que siempre exista al menos una letra minúscula
     rand_index = random.randint( 0, pwdLenght - 1 ) # Primero se determina el indice donde irá este caracter en la contraseña basado en la longitud establecida en la configuración
-    rand_ch = random.choice( LOWER_LETTERS ) # Se elige una letra minúscula aleatoriamente y se añaden estos a la lista como una tupla de par clave-valor, dado que es el primer par, no se verifica si ya existe ese indice
-    granting_chars.append( ( rand_index, rand_ch ) )
+    rand_ch = random.choice( LOWER_LETTERS ) # Se elige una letra minúscula aleatoriamente
+    
+    granting_chars[rand_index] = rand_ch # Se añaden el índice elegido como clave y el caracter elegido como valor, formando un par clave-valor, al diccionario, dado que es el primer par, no se verifica si ya existe ese indice
 
-    if( withUpperLetters ): # Preparación: Se añaden los caracteres de las demás tuplas a la lista charSet para la contraseña, según la configuración establecida por el usuario o según la configuración por default si no se ha modificado, de esta manera, esta lista queda con todos los caracteres disponibles para la contraseña, se deberan entonces escoger aleatoriamente de aquí y así generarla
+    if( withUpperLetters ): # Preparación: Se añaden los caracteres de las demás tuplas a la lista char_set pool de caracteres para la contraseña, según la configuración establecida por el usuario o según la configuración por default si no se ha modificado, de esta manera, esta lista queda con todos los caracteres disponibles, se deberan entonces escoger aleatoriamente de aquí para así poder generarla
         char_set.extend( UPPER_LETTERS )
         
         while True:
             rand_index = random.randint( 0, pwdLenght - 1 ) # Se determina también el indice donde irá el caracter de letra mayúscula en la contraseña
 
-            if( not verify_existing_key( rand_index, granting_chars ) ): # Dado que ya hay un par en la lista, se verifica que el indice obtenido no exista ya en la lista
-                rand_ch = random.choice( UPPER_LETTERS ) # Si en efecto el índice no existe en la lista todavía, se determina un caracter de letra mayúscula aleatorio, se añade el par a la lista y se sale del bucle, pero si llegará a existir el índice, se genera uno nuevo y se hace nuevamente la verificación, y esto se hace con los otros dos conjuntos de números y símbolos también
-                granting_chars.append( ( rand_index, rand_ch ) )
+            if( not rand_index in granting_chars ): # Dado que ya hay un par en el diccionario, se verifica que el indice obtenido no exista todavía
+                rand_ch = random.choice( UPPER_LETTERS ) # Si en efecto el índice no existe, se determina un caracter de letra mayúscula aleatorio, se añade el par al diccionario y se sale del bucle, pero si ya existe el índice, se genera uno nuevo y se hace nuevamente la verificación, esto se hace con los otros dos conjuntos de números y símbolos también si es que estan permitidos en la configuración
+                granting_chars[rand_index] = rand_ch
                 break
                 
     if( withNumbers ):
@@ -353,9 +345,9 @@ def safe_password_generator():
         while True:
             rand_index = random.randint( 0, pwdLenght - 1 )
 
-            if( not verify_existing_key( rand_index, granting_chars ) ):
+            if( not rand_index in granting_chars ):
                 rand_ch = random.choice( DIGITS )
-                granting_chars.append( ( rand_index, rand_ch ) )
+                granting_chars[rand_index] = rand_ch
                 break
                 
     if( withSymbols ):
@@ -364,30 +356,24 @@ def safe_password_generator():
         while True:
             rand_index = random.randint( 0, pwdLenght - 1 )
 
-            if( not verify_existing_key( rand_index, granting_chars ) ):
+            if( not rand_index in granting_chars ):
                 rand_ch = random.choice( SYMBOLS )
-                granting_chars.append( ( rand_index, rand_ch ) )
+                granting_chars[rand_index] = rand_ch
                 break
 
     # Motor de Generación de la Contraseña
     for index in range( pwdLenght ): 
-        insertion_pending = verify_existing_key( index, granting_chars ) # Se verifica si existe una clave de la lista que coincida con el índice actual del for en la contraseña, de ser así significa que hay que insertar el caracter en su valor en la contraseña, por lo tanto hay una inserción pendiente
+        insertion_pending = index in granting_chars # Se verifica si existe una clave en el diccionario que coincida con el índice actual del for en la contraseña, de ser así significa que hay que insertar ese caracter almacenado en el valor de ese par del diccionario en la contraseña, por lo tanto hay una inserción pendiente
 
-        if( repeatChars ): # Si la Repetición de Caracteres está permitida simplemente se genera el caracter aleatoriamente y se lo añade a la contraseña generada hasta completar la cantidad de caracteres requeridos según la configuración establecida.
-            if( insertion_pending ):
-                generatedPwd += granting_chars[granting_chars_index][1] # Se obtiene el caracter en el valor del par en la lista y se lo añade a la contraseña
-                granting_chars_index += 1 # Se aumenta el indice indicador en la lista en 1 para cuando halla que obtener el siguiente valor
-
-            else: # Si no hay una inserción pendiente simplemente se añade un caracter aleatorio a la contraseña de manera normal
-                generatedPwd += random.choice( char_set ) # Se va añadiendo un caracter aleatoriamente de todos los que se encuentren en la lista charSet, según la configuración establecida, hasta completar la longitud de caracteres establecidos para la contraseña.            
-                            
+        if( repeatChars ): # Si la Repetición de Caracteres está permitida simplemente se añade un caracter a la contraseña sin verificar si se repite o no, así hasta completar la cantidad de caracteres requeridos según la configuración establecida.
+            generatedPwd += granting_chars[index] if insertion_pending else random.choice( char_set ) # Si hay una insercion pendiente, se obtiene el caracter del valor del par del diccionario cuya clave coincide con el índice en la iteración actual del for y se lo añade a la contraseña, si no hay una inserción pendiente simplemente se añade un caracter aleatorio a la contraseña de la lista pool de caracteres de manera normal
+  
         else: # Modo de No Repetición
-            if( insertion_pending and generatedPwd.find( granting_chars[granting_chars_index][1] ) == -1 ): # Se verifica si hay una inserción pendiente y si el caracter que tocaría en este indica no existe todavía en la contraseña, si no existe, se lo añade y se aumenta el indice en 1, si ya existe o si no hay una inserción pendiente se sigue el funcionamiento normal
-                generatedPwd += granting_chars[granting_chars_index][1]
-                granting_chars_index += 1
+            if( insertion_pending and generatedPwd.find( granting_chars[index] ) == -1 ): # Se verifica si hay una inserción pendiente y si el caracter del diccionario que habría que insertar no existe todavía en la contraseña, si no existe, se lo añade a la contraseña, si ya existe o si no hay una inserción pendiente se sigue el funcionamiento normal
+                generatedPwd += granting_chars[index]
 
             else:
-                while True: # (Bloque que simula un Do-While) Si no está permitida la repetición, se genera el caracter y se verifica que no exista como parte de la contraseña, si ya existe, se volverá a generar un caracter hasta que se detecte que no exista dentro de la contraseña, entonces añade el caracter a esta y sale del bucle while hacia la siguiente iteración del for, y así sucesivamente hasta completar la cantidad de caracteres requeridos, ya sean 8 o 16 según la configuración establecida o no alterada por el usuario.
+                while True: # (Bloque que simula un Do-While) Si no está permitida la repetición, se elige el caracter aleatoriamente y se verifica que no exista como parte de la contraseña, si ya existe, se volverá a generar un caracter hasta que se detecte que no exista dentro de la contraseña, entonces se añade el caracter y se sale del bucle while hacia la siguiente iteración del for, y así sucesivamente hasta completar la cantidad de caracteres requeridos.
                     ch_drawn = random.choice( char_set )
                                 
                     if( generatedPwd.find( ch_drawn ) == -1 ):
